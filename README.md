@@ -1,12 +1,27 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Quick GIF Preview
+![gif demo](https://github.com/user-attachments/assets/bd94d78e-5194-455c-b1dc-fd33a439882f)
+
+## Demo
+[Click here for live demo.](https://wang-ruipeng.github.io/CIS566-24fall-hw1/)
+
+## Description
+### Fireball
+Utilizes 3D Perlin noise for dynamic texture generation, simplex 3D noise for vertex displacement, creating a swirling, molten appearance. Incorporates a color change according to the vertex displacement. Achieves a realistic, animated fire effect through noise-based color mixing and distortion.
+### Ring
+Employs a distance function to create a flickering, irregular ringsthat looks like a torus from certain angle. Uses smoothstep for soft edges and applies time-based animation for a pulsating effect. Results in a dynamic and somehow baffling (when you discover that this ring is a plane instead of a torus) ring surrounding the fireball.
+### Starry Background
+- Implements a 3D hash function for star distribution. Uses a custom star shape function with random plane selection for varied star orientations. Applies simple harmonic motion for twinkling.
+- Incorporates a meteor effect using ray-plane intersection and smoothstep for tail rendering. Achieves a deep, dynamic night sky with twinkling stars and occasional shooting stars
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
 
 ## Getting Started
 
-1. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
+1. Fork and clone [this repository](https://github.com/CIS-5660-Fall-2024/hw01-fireball).
 
 2. Copy your hw0 code into your local hw1 repository.
 
@@ -69,5 +84,9 @@ Choose one of the following options:
 
 - Update README.md to contain a solid description of your project
 - Publish your project to gh-pages. `npm run deploy`. It should now be visible at http://username.github.io/repo-name
-- Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project.
-- Submit the link to your pull request on Canvas.
+- Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project
+- Submit the link to your pull request on Canvas
+
+## Reference
+- ShaderToy Fire: https://www.shadertoy.com/view/XsXSWS
+- Noise Funtion Implementation: https://github.com/ashima/webgl-noise/blob/master/src/noise3D.glsl
