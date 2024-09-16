@@ -1,11 +1,12 @@
 import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+const Stats = require('stats-js');
+import * as DAT from 'dat.gui';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import ModelLoader from './loader';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -38,15 +39,15 @@ function main() {
   }, false);
 
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
+  const stats = Stats();
+  stats.setMode(0);
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const gui = new DAT.GUI();
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -72,22 +73,38 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
+  const fire = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-N-tan-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-N-tan-frag.glsl')),
+  ]);
+
   function processKeyPresses() {
     // Use this if you wish
   }
 
+  const ml = new ModelLoader();
+  let models = ml.loadModel('./DamagedHelmet.glb');
+  console.log(models);
+
   // This function will be called every frame
   function tick() {
     camera.update();
-    // stats.begin();
+    stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
-    ], time);
+    // renderer.render(camera, flat, [
+    //   square,
+    // ], time);
+
+    for (let model of models) {
+      renderer.render(camera, fire, [
+        model,
+      ], time);
+    }
+
     time++;
-    // stats.end();
+    stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +114,15 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
+    // flat.setDimensions(window.innerWidth, window.innerHeight);
+    flat.setUniformVec2('u_Dimensions', vec2.fromValues(window.innerWidth, window.innerHeight));
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
+  // flat.setDimensions(window.innerWidth, window.innerHeight);
+  flat.setUniformVec2('u_Dimensions', vec2.fromValues(window.innerWidth, window.innerHeight));
 
   // Start the render loop
   tick();
