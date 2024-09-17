@@ -74,8 +74,8 @@ function main() {
   ]);
 
   const fire = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-N-tan-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-N-tan-frag.glsl')),
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-tan-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-tan-frag.glsl')),
   ]);
 
   function processKeyPresses() {
@@ -83,11 +83,16 @@ function main() {
   }
 
   const ml = new ModelLoader();
-  let models = ml.loadModel('./DamagedHelmet.glb');
+  // let models = ml.loadModel('./human_skull.glb');
+  // let models = ml.loadModel('./DamagedHelmet.glb');
+  // let models = ml.loadModel('./head.glb');
+  let models = ml.loadModel('./icosphere.glb');
   console.log(models);
 
   // This function will be called every frame
   function tick() {
+
+    time = performance.now() / 1000;
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
@@ -98,12 +103,12 @@ function main() {
     // ], time);
 
     for (let model of models) {
+      fire.setModelMatrix(model.transform);
       renderer.render(camera, fire, [
         model,
       ], time);
     }
 
-    time++;
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

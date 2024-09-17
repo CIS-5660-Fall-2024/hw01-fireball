@@ -3,13 +3,14 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import Drawable from './rendering/gl/Drawable';
 import {gl} from './globals';
+import { mat4 } from 'gl-matrix';
 
 class ModelDrawable extends Drawable {
 
     indices: Uint32Array;
     positions: Float32Array;
     normals: Float32Array;
-    tangents: Float32Array;
+    transform: mat4;
 
     create(): void {
         
@@ -27,13 +28,6 @@ class ModelDrawable extends Drawable {
         this.generateNor();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.bufNor);
         gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
-    }
-
-    setTangents(tangents: Float32Array): void {
-        this.tangents = tangents;
-        this.generateTan();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.bufTan);
-        gl.bufferData(gl.ARRAY_BUFFER, this.tangents, gl.STATIC_DRAW);
     }
 
     setIndices(indices: Uint32Array): void {
@@ -61,6 +55,7 @@ class ModelLoader {
             function (object) {
                 object.scene.traverse(function (child) {
                     if (child instanceof THREE.Mesh) {
+
                         // extract the geometry
                         var geometry = child.geometry;
 
@@ -76,16 +71,15 @@ class ModelLoader {
 
                         var indices = geometry.index.array;
 
-                        var hasTangents = geometry.attributes.tangent !== undefined;
-                        var tangents = hasTangents ? geometry.attributes.tangent.array : null;
-
                         var model = new ModelDrawable();
                         model.setPositions(new Float32Array(vertices));
                         model.setNormals(new Float32Array(normals));
                         model.setIndices(new Uint32Array(indices));
-                        if (hasTangents) {
-                            model.setTangents(tangents);
-                        }
+
+                        model.transform = mat4.fromValues(...child.matrixWorld.elements);
+
+                        console.log("Vertices", vertices);
+                        console.log("Normals", normals);
 
                         drawables.push(model);
                         
