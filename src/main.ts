@@ -1,7 +1,8 @@
-import {vec2, vec3} from 'gl-matrix';
+import {mat4, vec2, vec3} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Square from './geometry/Square';
+import Icosphere from './geometry/Icosphere';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
@@ -13,15 +14,25 @@ import ModelLoader from './loader';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  renderEyes: true,
+  taper: 1.2,
+  height: 1.8,
+  baseColor: [1.0 * 255, 0.5 * 255, 0.2 * 255],
+  highlightColor: [1.0 * 255, 1.0 * 255, 0.3 * 255],
+  outlineColor: [0.9 * 255, 0.35 * 255, 0.35 * 255],
+  model: false,
+  lighting: true,
 };
 
 let square: Square;
 let time: number = 0;
+let icosphere: Icosphere;
 
 function loadScene() {
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 10, controls.tesselations);
+  icosphere.create();
 }
 
 function main() {
@@ -48,6 +59,14 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
+  gui.add(controls, 'renderEyes');
+  gui.add(controls, 'taper', 1.0, 2.0);
+  gui.add(controls, 'height', 1.3, 5.0);
+  gui.addColor(controls, 'baseColor');
+  gui.addColor(controls, 'highlightColor');
+  gui.addColor(controls, 'outlineColor');
+  gui.add(controls, 'model');
+  gui.add(controls, 'lighting');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -72,6 +91,11 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
+  
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+  ]);
 
   const fire = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-tan-vert.glsl')),
@@ -83,11 +107,9 @@ function main() {
   }
 
   const ml = new ModelLoader();
-  // let models = ml.loadModel('./human_skull.glb');
-  // let models = ml.loadModel('./DamagedHelmet.glb');
-  // let models = ml.loadModel('./head.glb');
-  let models = ml.loadModel('./icosphere.glb');
-  console.log(models);
+  let head = ml.loadModel('./stylized_anime_female_head.glb');
+  let sphere = ml.loadModel('./icosphere.glb');
+  console.log(sphere);
 
   // This function will be called every frame
   function tick() {
@@ -102,11 +124,61 @@ function main() {
     //   square,
     // ], time);
 
-    for (let model of models) {
+    // sphere if you want to render the icosphere otherwise head
+    let modelList = controls.model ? head : sphere;
+
+    for (let model of modelList) {
+      
+      let b = controls.lighting ? 1.0 : 0.0;
+      fire.setUniformFloat('lighting', b);
+      fire.setUniformFloat('u_TaperFactor', controls.taper);
+      fire.setUniformFloat('u_ScaleY', controls.height);
+      fire.setUniformVec3('baseColor', vec3.fromValues(controls.baseColor[0] / 255.0, controls.baseColor[1] / 255.0, controls.baseColor[2] / 255.0));
+      fire.setUniformVec3('highlightColor', vec3.fromValues(controls.highlightColor[0] / 255.0, controls.highlightColor[1] / 255.0, controls.highlightColor[2] / 255.0));
+      fire.setUniformVec3('outlineColor', vec3.fromValues(controls.outlineColor[0] / 255.0, controls.outlineColor[1] / 255.0, controls.outlineColor[2] / 255.0));
+
+      // multiply transform by scale matrix
+      let scale = mat4.create();
+      mat4.fromScaling(scale, vec3.fromValues(1.05, 1.05, 1.05));
+      // scale in local space
+      let out = mat4.create();
+      mat4.multiply(out, scale, model.transform);
+
+      if (!controls.model) {
+        gl.depthMask(false);
+        fire.setModelMatrix(out);
+        fire.setUniformFloat('u_Black', 1.0);
+        renderer.render(camera, fire, [
+          model,
+        ], time);
+      }
+
+      gl.depthMask(true);
+      fire.setUniformFloat('u_Black', 0.0);
       fire.setModelMatrix(model.transform);
       renderer.render(camera, fire, [
         model,
       ], time);
+    }
+
+    if (controls.renderEyes && !controls.model) {
+      lambert.setUniformFloat('u_ScaleY', controls.height);
+      lambert.setUniformFloat('u_TaperFactor', controls.taper);
+      let offset = 0.5;
+      lambert.setUniformVec3('u_Offset', vec3.fromValues(offset, 0, 0));
+      for (let model of sphere) {
+        lambert.setModelMatrix(model.transform);
+        renderer.render(camera, lambert, [
+          model,
+        ], time);
+      }
+      lambert.setUniformVec3('u_Offset', vec3.fromValues(-offset, 0, 0));
+      for (let model of sphere) {
+        lambert.setModelMatrix(model.transform);
+        renderer.render(camera, lambert, [
+          model,
+        ], time);
+      }
     }
 
     stats.end();
