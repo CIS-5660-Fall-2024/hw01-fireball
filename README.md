@@ -1,4 +1,4 @@
-# [Live Demo](https://akikozzm.github.io/hw01-fireball-base/)
+# [Live Demo](https://akikozzm.github.io/hw01-fireball/)
 ![](images/01.gif)
 
 ## Summary
