@@ -80,6 +80,11 @@ class ShaderProgram {
     }
   }
 
+  setUniformMat4(name: string, mat: mat4) {
+    this.use();
+    gl.uniformMatrix4fv(gl.getUniformLocation(this.prog, name), false, mat);
+  }
+
   setGeometryColor(color: vec4) {
     this.use();
     if (this.unifColor !== -1) {

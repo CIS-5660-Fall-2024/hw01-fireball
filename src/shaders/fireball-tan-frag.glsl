@@ -12,7 +12,7 @@ in vec3 eye_relative_pos;
 
 out vec4 out_Col;
 
-// FBM implementation from https://www.shadertoy.com/view/4dS3Wd
+// This FBM implementation is from https://www.shadertoy.com/view/4dS3Wd
 float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
 float noise(vec3 x) {
     const vec3 step = vec3(110, 241, 171);
@@ -76,9 +76,6 @@ void main() {
     vec3 newSamplePoint = fs_Pos + bump * 1.0;
     newSamplePoint = newSamplePoint * vec3(1.0, 1.0, 1.0);
     float noise = fbm(newSamplePoint, 8, vec3(100.0), 0.5);
-
-    float gradient = pow(3.5 - newSamplePoint.y, 1.5) * 0.5;
-    float product = noise * gradient;
     
     vec3 color;
 

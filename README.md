@@ -2,13 +2,54 @@
 
 ## Aaron Tian
 
+[Live Demo](https://aarontian.github.io/hw01-fireball/)
+
+![preview](preview.png)
+
+Supposed to resemble a "Podoboo" enemy from Super Mario. Reference:
+![podoboo](podoboo.jpg)
+
 Toolbox Functions Used:
-* Sin/Cos trig functions
-* Triangle wave
+* Sin/Cos functions
+* Triangle Wave
 * Smoothstep
-* ????
+* Bias Function
+
+Extra Credit Features:
+- Added a background to the scene (3D Perlin Noise contour map)
+- Model loading (.gltf)
+    ![model](model.png)
+    - Uses three.js model importer library
+
+Breakdown:
+1. Render cubemap for background
+    - Contours / heightmap of the sine of 3D Perlin noise. Lines show (gradient color) when the magnitude of the value equals the gradient (estimated using `fwidth`). Smoothstepping this acts as a multplier for the gradient color such that only peak amplitude parts are colored with the gradient, the rest is white
+    - Multiplier is further scaled by bias function to create flashing effect
+2. Disable depth testing and render enlarged black fireball as outline
+    - Outline is always behind the fireball
+3. Render fireball
+    - Vertex Shader
+        - Points are scaled based off function that sums multiple sine waves using position as input
+            - Low frequency movement
+        - Exponential polynomial used to taper xz width of fireball based off y position
+        - FBM noise used to displace vertices in direction towards high altitude point
+            - High frequency movement
+    - Fragment Shader
+        - The FBM function is sampled 3 times at the position with a delta in the XYZ directions to estimate a gradient. This gradient is used to displace the FBM sample point. The noise value is then interpolated linearly between three colors. To make the edges redder the dot product between the normal and view direction is used to interpolate the final color to red (this only works well on round objects). Finally toon lighting with 3 levels is applied. 
+4. Render eyes
+    - White highlights are created using Phong specular reflection
+    - Triangle wave used to scale height for blinking effect
 
 References:
+- https://www.shadertoy.com/view/4dS3Wd
+    - For 3D FBM implementation
+- https://www.enkisoftware.com/devlogpost-20150131-1-Normal-generation-in-the-pixel-shader
+    - Technique for normal reconstruction for lighting I used
+- https://www.shadertoy.com/view/4djSRW
+    - 3D to 3D hash function
+- https://iquilezles.org/articles/morenoise/
+    - Using noise deriative/normal to modify the noise function for more interesting results
+
 
 ## Objective
 

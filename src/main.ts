@@ -1,7 +1,7 @@
 import {mat4, vec2, vec3} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
-import Square from './geometry/Square';
+import Cube from './geometry/Cube';
 import Icosphere from './geometry/Icosphere';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
@@ -24,15 +24,15 @@ const controls = {
   lighting: true,
 };
 
-let square: Square;
+// let square: Square;
 let time: number = 0;
-let icosphere: Icosphere;
+let cube: Cube;
 
 function loadScene() {
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 10, controls.tesselations);
-  icosphere.create();
+  // square = new Square(vec3.fromValues(0, 0, 0));
+  // square.create();
+  cube = new Cube(vec3.fromValues(0, 0, 0));
+  cube.create();
 }
 
 function main() {
@@ -102,6 +102,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-tan-frag.glsl')),
   ]);
 
+  const background = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/sphere-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/sphere-frag.glsl')),
+  ]);
+
   function processKeyPresses() {
     // Use this if you wish
   }
@@ -126,6 +131,25 @@ function main() {
 
     // sphere if you want to render the icosphere otherwise head
     let modelList = controls.model ? head : sphere;
+
+    camera.updateProjectionMatrix();
+
+
+    // background
+    let viewNoTranslation = mat4.clone(camera.viewMatrix);
+    viewNoTranslation[12] = 0;
+    viewNoTranslation[13] = 0;
+    viewNoTranslation[14] = 0;
+    background.setUniformFloat('u_Time', time);
+
+    // set depth test mode to less than or equal to
+    gl.depthFunc(gl.LEQUAL);
+
+      background.setUniformMat4('u_Proj', camera.projectionMatrix);
+      background.setUniformMat4('u_View', viewNoTranslation);
+      background.draw(cube);
+    
+    gl.depthFunc(gl.LESS);
 
     for (let model of modelList) {
       

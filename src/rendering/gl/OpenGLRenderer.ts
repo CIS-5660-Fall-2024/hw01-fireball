@@ -24,7 +24,7 @@ class OpenGLRenderer {
 
   render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, time: number) {
     prog.setEyeRefUp(camera.controls.eye, camera.controls.center, camera.controls.up);
-    camera.updateProjectionMatrix();
+    //camera.updateProjectionMatrix();
     let viewProjMatrix = mat4.create();
     mat4.multiply(viewProjMatrix, camera.projectionMatrix, camera.viewMatrix);
     prog.setViewProjMatrix(viewProjMatrix);
