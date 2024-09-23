@@ -1,5 +1,9 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Description
+
+Weird-looking fireball with vertical plumes.
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
