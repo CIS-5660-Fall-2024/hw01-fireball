@@ -20,6 +20,7 @@ Extra Credit Features:
 - Model loading (.gltf)
     ![model](model.png)
     - Uses three.js model importer library
+    - [Model source](https://sketchfab.com/3d-models/stylized-anime-female-head-e8d04325a74e46a98a6494abe721a8b2)
 
 Breakdown:
 1. Render cubemap for background
