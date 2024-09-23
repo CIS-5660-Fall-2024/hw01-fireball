@@ -1,52 +1,80 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
-import Square from './geometry/Square';
-import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
+import * as DAT from 'dat.gui';
+import { vec3, vec4 } from 'gl-matrix';
 import Camera from './Camera';
-import {setGL} from './globals';
-import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import Icosphere from './geometry/Icosphere';
+import { setGL } from './globals';
+import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
+import ShaderProgram, { Shader } from './rendering/gl/ShaderProgram';
+const Stats = require('stats-js');
+var CameraControls = require('3d-view-controls');
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
-  'Load Scene': loadScene, // A function pointer, essentially
+  color1: [50, 50, 50],
+  color2: [164, 44, 44],
+  tailSpeed: 5,
+  fbmOctaves: 4,
+  "Hanako's Hakujoudai": hanako,
+  "Tsukasa's Kokujoudai": tsukasa,
+  'Camera position': resetCamera, // A function pointer, essentially
 };
 
-let square: Square;
-let time: number = 0;
+// Add controls to the gui
+const gui = new DAT.GUI();
+gui.width = 400;
+gui.add(controls, 'tesselations', 0, 8).step(1);
+const col1Ctrl = gui.addColor(controls, "color1");
+const col2Ctrl = gui.addColor(controls, "color2");
+const tailSpeedCtrl = gui.add(controls, "tailSpeed", 1, 10, 1);
+const octavesCtrl = gui.add(controls, "fbmOctaves", 1, 5, 1);
 
-function loadScene() {
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  // time = 0;
+const presets = gui.addFolder("Presets");
+presets.open();
+presets.add(controls, "Hanako's Hakujoudai");
+presets.add(controls, "Tsukasa's Kokujoudai");
+
+const reset = gui.addFolder("Reset");
+reset.open();
+reset.add(controls, 'Camera position');
+
+let icosphere: Icosphere;
+let prevTesselations: number = 5;
+
+const initPosition = vec3.fromValues(3, 1, 8);
+const initTarget = vec3.fromValues(0, 1.4, 0);
+const camera = new Camera(initPosition, initTarget);
+
+function resetCamera() {
+  camera.controls = CameraControls(document.getElementById('canvas'), {
+    eye: initPosition,
+    center: initTarget,
+  });
+}
+
+function hanako() {
+  col1Ctrl.setValue([200, 200, 200]);
+  col2Ctrl.setValue([0, 114, 101]);
+  tailSpeedCtrl.setValue(2);
+  octavesCtrl.setValue(2);
+}
+
+function tsukasa() {
+  col1Ctrl.setValue([50, 50, 50]);
+  col2Ctrl.setValue([164, 44, 44]);
+  tailSpeedCtrl.setValue(5);
+  octavesCtrl.setValue(4);
 }
 
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
-
-  // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const stats = Stats();
+  stats.setMode(0);
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -58,36 +86,56 @@ function main() {
   // Later, we can import `gl` from `globals.ts` to access it
   setGL(gl);
 
-  // Initial call to load scene
-  loadScene();
-
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  // Load icosphere
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  icosphere.create();
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const flat = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
+  const fireball = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require("./shaders/fireball.vert.glsl")),
+    new Shader(gl.FRAGMENT_SHADER, require("./shaders/fireball.frag.glsl")),
   ]);
 
-  function processKeyPresses() {
-    // Use this if you wish
-  }
+  let time = 0;
 
   // This function will be called every frame
   function tick() {
     camera.update();
-    // stats.begin();
+    stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+
+    const col2 = controls.color2;
+    renderer.setClearColor(col2[0] / 255 / 2, col2[1] / 255 / 2, col2[2] / 255 / 2, 1);
     renderer.clear();
-    processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
-    ], time);
-    time++;
-    // stats.end();
+
+    if(controls.tesselations != prevTesselations)
+    {
+      prevTesselations = controls.tesselations;
+      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      icosphere.create();
+    }
+
+    let shaderProgram = fireball;
+    shaderProgram.setTime(time);
+
+    const dir = vec3.create();
+    vec3.subtract(dir, camera.controls.eye, camera.controls.center);
+    vec3.normalize(dir, dir);
+    shaderProgram.setDirection(vec4.fromValues(dir["0"], dir["1"], dir["2"], 0));
+
+    const col1 = controls.color1;
+    shaderProgram.setColor1(vec4.fromValues(col1[0] / 255, col1[1] / 255, col1[2] / 255, 1));
+
+    shaderProgram.setColor2(vec4.fromValues(col2[0] / 255, col2[1] / 255, col2[2] / 255, 1));
+    shaderProgram.setTailSpeed(controls.tailSpeed);
+    shaderProgram.setFbmOctaves(controls.fbmOctaves);
+
+    renderer.render(camera, shaderProgram, [icosphere]);
+
+    stats.end();
+    time += 1;
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +145,11 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();
