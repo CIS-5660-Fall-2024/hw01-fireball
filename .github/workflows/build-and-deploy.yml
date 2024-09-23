@@ -1,5 +1,4 @@
-
-name: Build and Deploy
+name: Build and Deploy GH Page
 on:
   push:
     branches:
@@ -35,4 +34,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: dist
-          CLEAN: false
+          CLEAN: true
