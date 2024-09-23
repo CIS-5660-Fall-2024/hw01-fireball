@@ -2,7 +2,7 @@
 
 ## Aaron Tian
 
-[Live Demo](https://aarontian.github.io/hw01-fireball/)
+[Live Demo](https://aarontian-stack.github.io/hw01-fireball/)
 
 ![preview](preview.png)
 
