@@ -102,6 +102,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-tan-frag.glsl')),
   ]);
 
+  const fire_black = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-tan-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-black.glsl')),
+  ]);
+
   const background = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/sphere-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/sphere-frag.glsl')),
@@ -151,16 +156,23 @@ function main() {
     
     gl.depthFunc(gl.LESS);
 
+    // put shaders into list
+    let shaders = [fire, fire_black];
+
     for (let model of modelList) {
       
       let b = controls.lighting ? 1.0 : 0.0;
-      fire.setUniformFloat('lighting', b);
-      fire.setUniformFloat('u_TaperFactor', controls.taper);
-      fire.setUniformFloat('u_ScaleY', controls.height);
-      fire.setUniformVec3('baseColor', vec3.fromValues(controls.baseColor[0] / 255.0, controls.baseColor[1] / 255.0, controls.baseColor[2] / 255.0));
-      fire.setUniformVec3('highlightColor', vec3.fromValues(controls.highlightColor[0] / 255.0, controls.highlightColor[1] / 255.0, controls.highlightColor[2] / 255.0));
-      fire.setUniformVec3('outlineColor', vec3.fromValues(controls.outlineColor[0] / 255.0, controls.outlineColor[1] / 255.0, controls.outlineColor[2] / 255.0));
 
+      // set uniforms of shaders
+
+      for (let shader of shaders) {
+        shader.setUniformFloat('lighting', b);
+        shader.setUniformFloat('u_TaperFactor', controls.taper);
+        shader.setUniformFloat('u_ScaleY', controls.height);
+        shader.setUniformVec3('baseColor', vec3.fromValues(controls.baseColor[0] / 255.0, controls.baseColor[1] / 255.0, controls.baseColor[2] / 255.0));
+        shader.setUniformVec3('highlightColor', vec3.fromValues(controls.highlightColor[0] / 255.0, controls.highlightColor[1] / 255.0, controls.highlightColor[2] / 255.0));
+        shader.setUniformVec3('outlineColor', vec3.fromValues(controls.outlineColor[0] / 255.0, controls.outlineColor[1] / 255.0, controls.outlineColor[2] / 255.0));
+      }
       // multiply transform by scale matrix
       let scale = mat4.create();
       mat4.fromScaling(scale, vec3.fromValues(1.05, 1.05, 1.05));
@@ -170,15 +182,13 @@ function main() {
 
       if (!controls.model) {
         gl.depthMask(false);
-        fire.setModelMatrix(out);
-        fire.setUniformFloat('u_Black', 1.0);
-        renderer.render(camera, fire, [
+        fire_black.setModelMatrix(out);
+        renderer.render(camera, fire_black, [
           model,
         ], time);
       }
 
       gl.depthMask(true);
-      fire.setUniformFloat('u_Black', 0.0);
       fire.setModelMatrix(model.transform);
       renderer.render(camera, fire, [
         model,

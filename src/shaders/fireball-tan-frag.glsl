@@ -46,14 +46,7 @@ uniform vec3 highlightColor;
 uniform vec3 outlineColor;
 uniform float lighting;
 
-uniform float u_Black;
-
 void main() {
-
-    if (u_Black > 0.0) {
-        out_Col = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
 
     vec3 dFdxPos = dFdx( eye_relative_pos );
     vec3 dFdyPos = dFdy( eye_relative_pos );
