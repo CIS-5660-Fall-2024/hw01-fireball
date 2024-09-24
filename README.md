@@ -2,7 +2,7 @@
 
 ## Result
 ### Fireball
--[](Result.gif)
+![](Result.gif)
 
 ### [Live demo](https://annieqiuuu.github.io//hw01-fireball/) 
 
