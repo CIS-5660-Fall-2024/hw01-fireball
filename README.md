@@ -1,5 +1,31 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Result
+### Fireball
+-[](Result.gif)
+
+### [Live demo](https://annieqiuuu.github.io//hw01-fireball/) 
+
+### Description
+- fire.vert.glsl
+    - Combine a low-frequency, high-amplitude fbm with sin function to make the sphere less sphere-like
+    - Combine a high-frequency, low-amplitude fbm with sin function to make the randomize sphere surface
+-  fire.frg.glsl
+    - Apply a gradient of colors to your fireball's surface, where the fragment color is correlated to the vertex shader's displacement
+-  custom.vert.glsl
+    - Generate inner fire in different shader
+    - Make inner fire smaller and move along with outer fire
+-  custom.frag.glsl
+    - Make inner transparency changing all the time
+-  flat.frag.glsl
+    - Use noise to make a sky-like background
+- Tool box function useage
+    - FBM
+    - Bias
+    - Mix
+    - Smoothstep
+    - Wave
+    
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
