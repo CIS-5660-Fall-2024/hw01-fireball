@@ -9,6 +9,10 @@ class Camera {
   aspectRatio: number = 1;
   near: number = 0.1;
   far: number = 1000;
+
+  resetEyePos: vec3;
+  resetCenterPos: vec3;
+
   position: vec3 = vec3.create();
   direction: vec3 = vec3.create();
   target: vec3 = vec3.create();
@@ -29,6 +33,15 @@ class Camera {
 
   updateProjectionMatrix() {
     mat4.perspective(this.projectionMatrix, this.fovy, this.aspectRatio, this.near, this.far);
+  }
+
+  reset() {
+    this.controls = CameraControls(document.getElementById('canvas'), {
+      eye: this.resetEyePos,
+      center: this.resetCenterPos,
+    });
+    vec3.add(this.target, this.position, this.direction);
+    mat4.lookAt(this.viewMatrix, this.controls.eye, this.controls.center, this.controls.up);
   }
 
   update() {

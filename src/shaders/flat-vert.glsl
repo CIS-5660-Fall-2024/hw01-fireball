@@ -5,6 +5,7 @@ precision highp float;
 
 in vec4 vs_Pos;
 out vec2 fs_Pos;
+uniform float u_Time; 
 
 void main() {
   fs_Pos = vs_Pos.xy;
