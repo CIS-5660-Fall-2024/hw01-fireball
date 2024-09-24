@@ -1,5 +1,11 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+
+1.used sin,fbm and swatooth wave to change the sphere shape
+2.used worley noise to change the color of the ball
+3.added background
+![image](yangyu1.png) 
+live demo: https://yxy5332upenn.github.io/hw01-fireball/
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
