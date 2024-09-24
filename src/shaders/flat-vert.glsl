@@ -7,6 +7,6 @@ in vec4 vs_Pos;
 out vec2 fs_Pos;
 
 void main() {
-  fs_Pos = vs_Pos.xy;
+  fs_Pos = 2.0 * vs_Pos.xy - 1.0;
   gl_Position = vs_Pos;
 }

@@ -1,6 +1,8 @@
 import {vec2, vec3} from 'gl-matrix';
 // import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import * as DAT from 'dat.gui';
+// const Stats = require('stats-js');
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
@@ -12,15 +14,22 @@ import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  pointsAmplitude: 1.0,
+  fbmAmplitude: 0.1,
+  timeSpeed: 1.0,
 };
 
 let square: Square;
+let icosphere: Icosphere;
 let time: number = 0;
 
 function loadScene() {
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1.0, controls.tesselations);
+  icosphere.create();
+  
+  time = 0;
 }
 
 function main() {
@@ -46,7 +55,12 @@ function main() {
   // document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const gui = new DAT.GUI();
+  gui.add(controls, 'tesselations', 1, 5, 1);
+  gui.add(controls, "Load Scene");
+  gui.add(controls, 'pointsAmplitude', 0, 2, 0.1);
+  gui.add(controls, 'fbmAmplitude', 0, 0.5, 0.01);
+  gui.add(controls, 'timeSpeed', 1, 4, 0.1);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -72,6 +86,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+  ]);
+
   function processKeyPresses() {
     // Use this if you wish
   }
@@ -83,10 +102,17 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
+    
+    gl.disable(gl.DEPTH_TEST);
     renderer.render(camera, flat, [
       square,
-    ], time);
-    time++;
+    ], time, 0, 0, 0);
+
+    gl.enable(gl.DEPTH_TEST);
+    renderer.render(camera, lambert, [
+      icosphere,
+    ], time, controls.pointsAmplitude, controls.fbmAmplitude, 0.0);
+    time += controls.timeSpeed;
     // stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
