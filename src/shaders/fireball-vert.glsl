@@ -107,11 +107,9 @@ void main()
     vec4 new_vsPos = vs_Pos;
 
     float frequency = 3.0 ;
-    //low frequency
     float bump = fbm(vs_Pos.xyz * frequency + u_Time); 
-    //low amplitude
-    float amplitude = 0.01;
-    float wave = sin(vs_Pos.x * amplitude) * sin(vs_Pos.y * amplitude ) * sin(vs_Pos.z * amplitude);
+    float amplitude = 10.0;
+    float wave = sin(vs_Pos.x /10.0) * sin(vs_Pos.y /10.0 ) * sin(vs_Pos.z /10.0) * amplitude;
     float finalWave = mix(bump, wave, 0.6);
 
     new_vsPos.x -= vs_Nor.x  * finalWave;
