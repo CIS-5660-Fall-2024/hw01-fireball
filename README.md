@@ -15,8 +15,6 @@ Tasks Completed:
 5. use sin, impulse, bias and gain functions 
 6. 3 interactive controls
 
-## Submission
-
-- Publish your project to gh-pages. `npm run deploy`. It should now be visible at http://username.github.io/repo-name
-- Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project.
-- Submit the link to your pull request on Canvas.
+Live site: https://angelasiruizhu.github.io/hw01-fireball/
+Screenshot:
+![alt text](image.png)
