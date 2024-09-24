@@ -1,29 +1,4 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
-
-## Objective
-
-Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
-
-## Getting Started
-
-1. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
-
-2. Copy your hw0 code into your local hw1 repository.
-
-3. In the root directory of your project, run `npm install`. This will download all of those dependencies.
-
-4. Do either of the following (but I highly recommend the first one for reasons I will explain later).
-
-    a. Run `npm start` and then go to `localhost:7000` in your web browser
-
-    b. Run `npm run build` and then go open `index.html` in your web browser
-
-    You should hopefully see the framework code with a 3D cube at the center of the screen!
-
-
-## Developing Your Code
-All of the JavaScript code is living inside the `src` directory. The main file that gets executed when you load the page as you may have guessed is `main.js`. Here, you can make any changes you want, import functions from other files, etc. The reason that I highly suggest you build your project with `npm start` is that doing so will start a process that watches for any changes you make to your code. If it detects anything, it'll automagically rebuild your project and then refresh your browser window for you. Wow. That's cool. If you do it the other way, you'll need to run `npm build` and then refresh your page every time you want to test something.
-
 ## Publishing Your Code
 We highly suggest that you put your code on GitHub. One of the reasons we chose to make this course using JavaScript is that the Web is highly accessible and making your awesome work public and visible can be a huge benefit when you're looking to score a job or internship. To aid you in this process, running `npm run deploy` will automatically build your project and push it to `gh-pages` where it will be visible at `username.github.io/repo-name`.
 
