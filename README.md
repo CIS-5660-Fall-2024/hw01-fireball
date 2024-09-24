@@ -1,73 +1,97 @@
-# [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+# [Project 1: Noise-Based Fireball](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+#### Yifan Lu        
+#### University of Pennsylvania
 
-## Objective
+#### [Project Link (click me!)](https://lyifaxxx.github.io/hw01-fireball/)
 
-Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
+![](img/all.gif)
 
-## Getting Started
-
-1. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
-
-2. Copy your hw0 code into your local hw1 repository.
-
-3. In the root directory of your project, run `npm install`. This will download all of those dependencies.
-
-4. Do either of the following (but I highly recommend the first one for reasons I will explain later).
-
-    a. Run `npm start` and then go to `localhost:7000` in your web browser
-
-    b. Run `npm run build` and then go open `index.html` in your web browser
-
-    You should hopefully see the framework code with a 3D cube at the center of the screen!
+## Introduction
+This project is a procedural-generated fireball. Users can toogle several parameters including color, speed, brightness to create a custom fireball.
 
 
-## Developing Your Code
-All of the JavaScript code is living inside the `src` directory. The main file that gets executed when you load the page as you may have guessed is `main.js`. Here, you can make any changes you want, import functions from other files, etc. The reason that I highly suggest you build your project with `npm start` is that doing so will start a process that watches for any changes you make to your code. If it detects anything, it'll automagically rebuild your project and then refresh your browser window for you. Wow. That's cool. If you do it the other way, you'll need to run `npm build` and then refresh your page every time you want to test something.
 
-## Publishing Your Code
-We highly suggest that you put your code on GitHub. One of the reasons we chose to make this course using JavaScript is that the Web is highly accessible and making your awesome work public and visible can be a huge benefit when you're looking to score a job or internship. To aid you in this process, running `npm run deploy` will automatically build your project and push it to `gh-pages` where it will be visible at `username.github.io/repo-name`.
+## Project Feature
 
-## Setting up `main.ts`
-
-Alter `main.ts` so that it renders the icosphere provided, rather than the cube you built in hw0. You will be writing a WebGL shader to displace its surface to look like a fireball. You may either rewrite the shader you wrote in hw0, or make a new `ShaderProgram` instance that uses new GLSL files.
-
-## Noise Generation
-
-Across your vertex and fragment shaders, you must implement a variety of functions of the form `h = f(x,y,z)` to displace and color your fireball's surface, where `h` is some floating-point displacement amount.
-
-- Your vertex shader should apply a low-frequency, high-amplitude displacement of your sphere so as to make it less uniformly sphere-like. You might consider using a combination of sinusoidal functions for this purpose.
-- Your vertex shader should also apply a higher-frequency, lower-amplitude layer of fractal Brownian motion to apply a finer level of distortion on top of the high-amplitude displacement.
-- Your fragment shader should apply a gradient of colors to your fireball's surface, where the fragment color is correlated in some way to the vertex shader's displacement.
-- Both the vertex and fragment shaders should alter their output based on a uniform time variable (i.e. they should be animated). You might consider making a constant animation that causes the fireball's surface to roil, or you could make an animation loop in which the fireball repeatedly explodes.
-- Across both shaders, you should make use of at least four of the functions discussed in the Toolbox Functions slides.
+### Adjustable Noise-based Shape
+The overall shape of the fireball is determined by several types and layers of noise functions which make the shape look dynamic and organic.
 
 
-## Noise Application
 
-View your noise in action by applying it as a displacement on the surface of your icosahedron, giving your icosahedron a bumpy, cloud-like appearance. Simply take the noise value as a height, and offset the vertices along the icosahedron's surface normals. You are, of course, free to alter the way your noise perturbs your icosahedron's surface as you see fit; we are simply recommending an easy way to visualize your noise. You could even apply a couple of different noise functions to perturb your surface to make it even less spherical.
+### Color the Fireball
+Here is a picture to the Real Sun in our Solar system.
 
-In order to animate the vertex displacement, use time as the third dimension or as some offset to the (x, y, z) input to the noise function. Pass the current time since start of program as a uniform to the shaders.
+![image](https://github.com/user-attachments/assets/a609ef76-9a88-40a9-b07a-f792a8482ed4)
 
-For both visual impact and debugging help, also apply color to your geometry using the noise value at each point. There are several ways to do this. For example, you might use the noise value to create UV coordinates to read from a texture (say, a simple gradient image), or just compute the color by hand by lerping between values.
 
-## Interactivity
+The color gradient of the sun from higher temperature to lower looks like this:
 
-Using dat.GUI, make at least THREE aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
+```
+black - white - yellow - red - black
+```
 
-Add a button that will restore your fireball to some nice-looking (courtesy of your art direction) defaults. :)
+In order to blend/interpolate them in a (scientifically) correct way, I introduced the "fire intensity" mask. It is determined by the followings:
 
-## Extra Spice
+- view direction
+- tex coord on sphere surface
+- noises (mainly fbm noise)
 
-Choose one of the following options: 
+![](img/fireIntensity.gif)
 
-- Background (easy-hard depending on how fancy you get): Add an interesting background or a more complex scene to place your fireball in so it's not floating in a black void
-- Custom mesh (easy): Figure out how to import a custom mesh rather than using an icosahedron for a fancy-shaped cloud.
-- Mouse interactivity (medium): Find out how to get the current mouse position in your scene and use it to deform your cloud, such that users can deform the cloud with their cursor.
-- Music (hard): Figure out a way to use music to drive your noise animation in some way, such that your noise cloud appears to dance.
 
-## Submission
+Because the edge of our fireball should be less intense, it is necessary to consider the view direction.
 
-- Update README.md to contain a solid description of your project
-- Publish your project to gh-pages. `npm run deploy`. It should now be visible at http://username.github.io/repo-name
-- Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project.
-- Submit the link to your pull request on Canvas.
+Many wizards and witchs and magicians perform different types of fire magic. They threatened me to add more colors otherwise they will fireball me. So I use a hue mapping towards the original color which allows them to define a base color from the UI.
+
+![](img/colorChanging.gif)
+
+### Alpha Control
+Fire in the nature will fade into air. The best way I have to achieve this effect is to tweak alpha value accordingly. 
+
+The alpha value is determined by 3 terms:
+- The radius of the surface vertex point
+- Fire intensity. Higher fire intensity yields smaller alpha value.
+- View direction. Smaller viewing direction are more solid looking.
+
+This is what alpha mask looks like:
+
+![](img/alpha.gif)
+
+### Fake Post-Process
+After the overall color for the fireball is computed by color gradient and fire intensity, I applied a noise to it to achieve a filem-grid effect. The process is done in the same fragment shader where the color are computed, so it supposed to be a "fake" post process.
+
+![](img/noiseCom.png)
+
+The comparison of noise on/off under the "Wild Fire" preset above shows that the "fake" post process film-grid adds a more realistic touch to the fireball.
+
+### Presets
+This project provides four artist-friendly presets that can be shown with a single click:
+- Authentic Fireball
+
+![](img/preset1.gif)
+
+- Warm Orange
+
+![](img/preset2.gif)
+
+- Ice Wizard
+
+![](img/preset3.gif)
+
+- Wild Fire
+
+![](img/preset4.gif)
+
+
+## User Control
+![image](https://github.com/user-attachments/assets/40c43117-cf8d-4761-98db-4f89fb5a9b5b)
+
+The parameters for fireball shader will only be shown if the shader is selected to "fireball". They are under the folder "fireball parameters".
+
+## References
+
+1. Reference Pictures:
+
+![](img/reference.png)
+
+3. [shadertoy link](https://www.shadertoy.com/view/4dXGR4)
