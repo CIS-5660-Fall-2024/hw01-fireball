@@ -1,4 +1,85 @@
-# [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+# [Project 1: Fireball](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+
+## Christine Kneer
+
+Live Demo link: https://jiaomama.github.io/hw01-fireball/
+
+For this assignment, I created a procedural fireball inspired by Sawada Tsunayoshi’s Dying Will flame ability from the anime *Katekyo Hitman Reborn!* series. 
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/d1fd5fc1-c94a-40a4-b5c1-c19a70f11286" width="600"/>
+</p>
+
+<p align="center" float="middle">
+  <img src="https://github.com/user-attachments/assets/0019c1ca-910a-4df6-b961-9acf82ed282e" width="25%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/user-attachments/assets/414481b5-8c19-4b65-8f87-529e582fdaa0" width="45%">
+</p>
+
+
+## Vertex Shader Breakdown
+The Dying Will Flame has a distinctive shape characterized by two triangles extending outward from the body of the flame. To replicate this iconic shape, the fireball was divided into a top half and a bottom half, each treated differently to achieve the desired effect.
+
+### **Top Half**
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/ec43fa10-674b-46cd-b3c7-17a505ddb91b" width="400"/>
+</p>
+
+- **Triangle Wave**: The iconic triangular shape is created using a triangle wave applied to the vertices. To make them more spread out, I rotated the vertices outward additionally.
+- **Distortion**: The vertices are further distorted using a combination of sine and cosine waves of varying magnitudes, giving the flame a more dynamic and natural appearance.
+- **Fine Detail**: Finally, a small amount of Fractional Brownian Motion (fBm) noise is applied to add finer details to the flame, enhancing its complexity.
+
+### **Bottom Half**
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/d81c1545-88ac-4a3e-9207-e19510a1fe39" width="400"/>
+</p>
+
+- **Base Shape**: The bottom half maintains a general spherical shape, but with a slight taper towards a point at the center.
+- **Radius Adjustment**: The radius is adjusted using a linear interpolation (lerp) based on the absolute value of the x-coordinate, creating the tapered effect.
+- **Distortion and Noise**: Similar to the top half, sine and cosine waves of varying magnitudes are applied for a more flame-like appearance, followed by fBm noise for additional detail.
+
+### **Bringing It Together**
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/ae2096a8-2241-4f83-875a-6aa8f72dfae3" width="600"/>
+</p>
+
+- **Smooth Transition**: To ensure a seamless transition between the top and bottom halves of the flame, the radii from both halves are interpolated (lerped) in the middle part of the sphere, resulting in a smooth and cohesive flame shape.
+- **Animation**: Distortion are animated using the time variable.
+
+## Fragment Shader Breakdown
+
+### **Diffuse Color**
+A vertical gradient is applied to the fireball, blending from u_LowerColor at the bottom to u_UpperColor at the top.
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/9f091268-5cbb-4cd9-9d84-0a407b375b74" width="400"/>
+</p>
+
+### **Perlin Noise for Flame Details**
+I wanted more dynamics for my fireball, so I added random spots to the fireball’s surface.These spots are animated over time and appear where the noise value exceeds a set threshold.
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/d4860e55-b714-4bfd-be74-aae3a14adeb8" width="400"/>
+</p>
+
+
+### **Lighting Effects**
+Instead of a PBR approach, I wanted more of a 2D, manga-looking appearance, so I chose to use some variation of **toon shading**. The shader applies toon shading by quantizing the light intensity into distinct bands, giving the flame a cartoon-like appearance with sharp transitions. Meanwhile, I added rim lighting, emphasizing its silhouette. Finally, I adjusted the alpha value to create a slight transparency towards the edges of the flame.
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/1bcf7b8e-0407-4982-b3c1-396ce7524a0c" width="400"/>
+</p>
+
+## Background
+I also created an animated sun background that pulses together with the fireball, whose color is a relatively simple gradient (with sin waves) of red, orange, and yellow based on uv.
+
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/e125fd23-7246-4b1c-96f7-b45aa9f9d9d9" width="800"/>
+</p>
+
 
 ## Objective
 
