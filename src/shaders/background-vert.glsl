@@ -19,10 +19,9 @@ in vec4 vs_Pos;
 out vec2 fs_Pos;
 
 void main() {
-  vec4 pos = vs_Pos; 
-  pos.z = -3.; 
-  pos.xy *= 1.8;  
-  pos = u_ViewProj * u_Model * pos; 
-  fs_Pos = vs_Pos.xy; 
+  fs_Pos = vs_Pos.xy;
+
+  vec4 pos = vs_Pos;  
+  pos.z = 1.; 
   gl_Position = pos;
 }

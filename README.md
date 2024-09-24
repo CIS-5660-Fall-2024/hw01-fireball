@@ -1,4 +1,14 @@
-# [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
+# Project 1: Noise
+
+### [Link to Live Demo!](https://micklemacklemore.github.io/WebGL-Fireball/)
+
+https://github.com/user-attachments/assets/35f64257-6bf8-4f4d-9776-351a03b8c282
+
+### Features:
+
+* Stop Motion Mode
+* Stars with variable speed
+* 2D Flames!!
 
 ## Objective
 
