@@ -1,6 +1,8 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import {vec3} from 'gl-matrix';
+import {vec4} from 'gl-matrix';
+const Stats = require('stats-js');
+import * as DAT from 'dat.gui';
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
@@ -12,41 +14,56 @@ import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  'Body Color': [35, 20, 46],
+  'Fire Color': [206, 0, 255],
+  'Reset Scene': resetScene,
+  'Eye Angle': 0.7,
+  'Fire Speed': 2,
 };
 
 let square: Square;
-let time: number = 0;
+let fire: Icosphere;
+let body: Icosphere;
+let prevTesselations: number = 5;
 
 function loadScene() {
+  fire = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  fire.create();
+  body = new Icosphere(vec3.fromValues(0, 0.09, 0), 1, controls.tesselations);
+  body.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+}
+
+function resetScene() {
+  controls.tesselations = 5;
+  controls['Body Color'] = [35, 20, 46];
+  controls['Fire Color'] = [206, 0, 255];
+  controls['Eye Angle'] = 0.7;
+  controls['Fire Speed'] = 2;
+  loadScene();
 }
 
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
+  var time = 0;
 
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
+  const stats = Stats();
+  stats.setMode(0);
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const gui = new DAT.GUI();
+  gui.add(controls, 'tesselations', 0, 8).step(1);
+  gui.add(controls, 'Load Scene');
+  gui.addColor(controls, 'Body Color');
+  gui.addColor(controls, 'Fire Color');
+  gui.add(controls, 'Eye Angle', -3.14, 3.14).step(0.01);
+  gui.add(controls, 'Fire Speed', 1, 6).step(1);
+  gui.add(controls, 'Reset Scene');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -61,33 +78,67 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
+  renderer.setClearColor(0.071,0.188,0.298,1);
   gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+  const fireShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
+  ]);
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+  ]);
   const flat = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
-  function processKeyPresses() {
-    // Use this if you wish
-  }
-
   // This function will be called every frame
   function tick() {
     camera.update();
-    // stats.begin();
+    stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    processKeyPresses();
+    time++;
+    if(controls.tesselations != prevTesselations)
+    {
+      prevTesselations = controls.tesselations;
+      fire = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      fire.create();
+      body = new Icosphere(vec3.fromValues(0, 0.09, 0), 1, controls.tesselations);
+      body.create();
+    }
+
+    gl.disable(gl.DEPTH_TEST);
+    flat.setTime(time);
     renderer.render(camera, flat, [
       square,
-    ], time);
-    time++;
-    // stats.end();
+    ]);
+    gl.enable(gl.DEPTH_TEST);
+
+    lambert.setGeometryColor(vec4.fromValues(controls['Body Color'][0] / 255, controls['Body Color'][1] / 255, controls['Body Color'][2] / 255, 1));
+    lambert.setEye(controls['Eye Angle']);
+    lambert.setTime(time);
+    renderer.render(camera, lambert, [
+      body,
+    ]);
+
+    gl.depthMask(false);
+    fireShader.setGeometryColor(vec4.fromValues(controls['Fire Color'][0] / 255, controls['Fire Color'][1] / 255, controls['Fire Color'][2] / 255, 1));
+    fireShader.setTime(time);
+    fireShader.setSpeed(controls['Fire Speed']);
+    renderer.render(camera, fireShader, [
+      fire,
+    ]);
+    gl.depthMask(true);
+
+    stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +148,11 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();
